@@ -1,0 +1,128 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{format/nips15submit_e,times}
+\usepackage{hyperref}
+\usepackage{url}
+
+% For figures
+\usepackage{graphicx} % more modern
+%\usepackage{epsfig} % less modern
+\usepackage{subfigure} 
+
+% For citations
+\usepackage{natbib}
+
+% For algorithms
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\usepackage{color}
+\usepackage{preamble}
+\definecolor{mydarkblue}{rgb}{0,0.08,0.45}
+\hypersetup{ %
+    pdftitle={},
+    pdfauthor={},
+    pdfsubject={},
+    pdfkeywords={},
+    pdfborder=0 0 0,
+    pdfpagemode=UseNone,
+    colorlinks=true,
+    linkcolor=mydarkblue,
+    citecolor=mydarkblue,
+    filecolor=mydarkblue,
+    urlcolor=mydarkblue,
+    pdfview=FitH}
+    
+    
+\usepackage{amsmath, amsfonts, bm, lipsum, capt-of}
+\usepackage{natbib, xcolor, wrapfig, booktabs, multirow, caption}
+\DeclareCaptionType{copyrightbox}
+\usepackage{float}
+
+\usepackage{include/picins}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows,chains,matrix,positioning,scopes,calc}
+\tikzstyle{mybox} = [draw=none, rectangle]
+
+\renewcommand{\baselinestretch}{1}
+
+\title{Sensible allocation of computation\\for ensemble construction}
+
+\author{
+James Robert Lloyd\\
+Department of Engineering\\
+University of Cambridge\\
+\And
+Zoubin Ghahramani\\
+Department of Engineering\\
+University of Cambridge\\
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\setlength{\marginparwidth}{1in}
+\input{include/commenting.tex}
+
+%% For submission, make all render blank.
+%\renewcommand{\LATER}[1]{}
+%\renewcommand{\fLATER}[1]{}
+%\renewcommand{\TBD}[1]{}
+%\renewcommand{\fTBD}[1]{}
+%\renewcommand{\PROBLEM}[1]{}
+%\renewcommand{\fPROBLEM}[1]{}
+%\renewcommand{\NA}[1]{#1}  % Note, NA's pass through!
+
+%\nipsfinalcopy
+
+\begin{document} 
+
+\maketitle
+
+%\vspace{-\baselineskip}
+
+\begin{abstract} 
+This paper describes the methods implemented in the [redacted] entry to the \nth{2} round of the AutoML challenge, auto-track.
+The methods are most succinctly described as an extension of freeze-thaw Bayesian optimization to ensemble construction.
+In particular, we assume that we have access to a finite number of iterative learning algorithms and some method of forming an ensemble prediction from several predictions.
+We then consider the decision process of which iterative algorithms to run and for how long in order to maximise the performance of the ensembled predictions at the end of some time limit.
+Our approach to this Markov decision process is to model the reward function in a Bayesian fashion and then follow a mostly myopic strategy.
+We also discuss some technical details such as managing memory usage and asynchrony.
+Finally we position this work within the broader goal of automating as much of the machine learning pipeline as possible.
+\end{abstract} 
+
+\allowdisplaybreaks
+
+%\vspace{-\baselineskip}
+
+\section{Introduction}
+
+Intro
+
+\section{Background}
+
+\subsection{Model-based and Bayesian optimisation}
+
+\subsection{Freeze-thaw Bayesian optimisation}
+
+\subsection{Enemble construction and in particular, stacking}
+
+\section{Description of method}
+
+\section{Empirical performance}
+
+\section{Discussion}
+
+Discussion
+
+%\newpage
+
+\small
+
+\bibliography{library}
+\bibliographystyle{unsrt}
+
+\end{document} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
