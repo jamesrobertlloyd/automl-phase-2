@@ -109,7 +109,17 @@ Finally we position this work within the broader goal of automating as much of t
 
 \section{Introduction}
 
-Intro
+This paper describes a method for automatic machine learning (AutoML), in particular it targets the construction of a predictive model.
+At the time of writing a canonical way for an AutoML system to work would be to treat learning algorithms as black boxes that return predictions and an estimate of their performance.
+The task is then to choose an algorithm and hyperparameters that maximise this estimate of performance (perhaps accounting for the noisy character of the estimates).
+
+Variations on this canonical procedure include algorithms that exploit information from the learning curve of an iterative algorithm\fTBD{cite} and those that form an ensemble\footnotemark{} of base predictions\fTBD{cite}.
+This paper describes a method that does both; it uses learning curve information to quickly determine which base learning algorithms will most contribute to the performance of an ensemble of predictions.
+
+\footnotetext{This usually means an average but can refer to any method of combining several sets of predictions into one.}
+
+An implementation of this method came [redacted] in the \nth{2} round of the AutoML challenge, auto-track.
+For this competition, program robustness and other implementation details were important to ensure success; they are discussed as well as the method.
 
 \section{Background}
 
@@ -120,11 +130,13 @@ Suppose we observe evaluations of the function, potentially corrupted by noise, 
 Model-based optimisation uses the observations $\{(\Param_i, \Observation_i)\}_{i=1,\dots,N}$ to draw inferences about $f$ and then uses this information to decide where to evaluate the (noisy) function next.
 Model-based optimisation has gained popularity in the domain of hyperparameter optimisation for learning / statistical algorithms \ie optimisation of parameters not explicitly set by the learning / inference procedure.
 Here, the noisy evaluations of the function $\Func$ are some estimate of performance of a learning algorithm \eg cross-validated performance under some metric.
-Both frequentist\fTBD{cite} and Bayesian\fTBD{cite} approaches to inference have been explored in this domain and many variations of all sorts (modelling assumptions, evaluation location selection strategy, exploitation of parallelism, et cetera) abound\fTBD{cite}.
+Both frequentist\fTBD{cite} and Bayesian\fTBD{cite} approaches to inference have been explored in this domain and many variations of all sorts (modelling assumptions, evaluation location selection strategy, exploitation of parallelism, etc.) abound\fTBD{cite}.
 
 The main benefit of model-based optimisation in the context of hyper-parameter optimisation is the possibility of data efficiency.
-That is, by introducing assumptions about the nature of function $\Func$ one can draw inferences about it after observing relatively few evaluations of the function compared to classical optimisation algorithms.
+That is, by introducing assumptions about the nature of function $\Func$ one can draw inferences about it after observing relatively few evaluations of the function compared to classical optimisation algorithms\footnotemark{}\fTBD{cite}.
 When the function being optimised is the performance of a slow to evaluate learning algorithm, data efficiency is paramount, hence the focus on Bayesian inference methods and evaluation location selection strategies\fTBD{cite}.
+
+\footnotetext{Some classical optimisation algorithms have recently been interpreted as model-based optimisation using (approximate) inference.}
 
 \subsection{Freeze-thaw Bayesian optimisation}
 
@@ -240,6 +252,10 @@ This is not bounded rational - it's kinda like meta reasoning so certainly not o
 Machine learning is a pipe-line - pre and post processing clearly missing.
 
 Off-line learning.
+
+Proper data subsetting strategies for algorithms not easily made stochastic.
+
+An ensemble is just a prediction method - why the distinction?
 
 %\newpage
 
