@@ -154,11 +154,92 @@ This can be remedied easily by using two sets of validation data or by cross val
 \section{Description of method}
 \label{sec:method}
 
+In this section we give descriptions with increasing levels of detail of the algorithm we used in the \nth{2} round of the AutoML challenge, auto-track.
+The code we submitted to the competition is available on github\footnotemark{}.
+Many details of the algorithm were chosen somewhat arbitrarily or by rules of thumb; we discuss these choices at the end of this manuscript.
+
+\footnotetext{[Redacted]}
+
+\subsection{The main ideas}
+
+The main idea behind this method is to try to predict how much the performance of an ensembled prediction will improve if a base algorithm is run for a certain amount of extra time.
+Contrast this with FTBO that predicts how much an individual algorithm will improve.
+The main design principles of implementation are those of modularity, parallelism and fault tolerance so that any part of the algorithm can fail or become slow and the whole algorithm will still do something sensible.
+
+\subsection{Description}
+
+We assume we have access to a finite number of base learning algorithms with fixed hyperparameters; some of these algorithms are iterative.
+The training data is split into five equally sized folds and each algorithm is run on the five folds in parallel, producing predictions for the held out data and five sets of predictions for the validation and testing data, which are then averaged.
+The predictions on the held out data are used to estimate the performance of the base learning algorithms under some metric.
+
+The non-iterative algorithms are run in sequence, and are terminated after producing predictions or after a time limit.
+The iterative algorithms are run for a set period of time in sequence and are then paused, but are terminated is they do not produce predictions after a time limit.
+
+Whenever new predictions are made by a base learner or an iterative algorithm updates its predictions, the stacking algorithm is run.
+The inputs for the stacking learning problem are the concatenated predicted class probabilities from each base learner on the held out data.
+To learn the stacking function, logistic regression is used, where the coefficients are constrained to be equal across input class labels for each base learner i.e. a weighted sum of base probability predictions followed by a softmax.
+The performance of stacking is estimated via five fold cross validation.
+
+The changes in performance of each iterative base learner are recorded along with the corresponding change to the performance of the ensemble.
+Together with features recording other aspects of the state of base learners and the stacked ensemble a decision tree learning algorithm is used to learn a function to map between improvements in individual learners and the ensemble.
+Similar methods to those proposed in FTBO are used to extrapolate individual learning curves which allows for one to estimate how much the ensemble performance will improve if a single learning algorithm is run for a certain amount of extra time.
+
+For each iterative learning algorithm, the expected improvement to the performance of the ensemble prediction is caluclated is the algorithm is run for a time equal to an integer multiple of some base quantum of time.
+These expected improvements are discounted through time with a constant discount factor.
+The algorithm with the highest discounted expected improvement at some time is then chosen as the next algorithm to run.
+
+\subsection{Details of the method}
+
+FTBO kernel.
+
+Decision tree features and prior.
+
+Base learners (data and feature subsetting).
+
+Held out data and averaging of stuff.
+
+Details of parameters are unimportant (since they are mostly arbitrary choices) but can be found in the code.
+
+Missing data and feature selection as per the sample code.
+
+\subsection{Details of implementation}
+
+Memory management including memory sharing and startegies for sparse data.
+
+Message passing.
+
+Parallelism.
+
 \section{Empirical performance}
+
+We were placed [redacted].
+The results are below.
+
+[TABLE]
 
 \section{Discussion}
 
 Discussion
+
+\subsection{What is right with this method?}
+
+Ensembling and paying keen attention to time.
+
+\subsection{What is wrong with this method?}
+
+Cross validation.
+
+Hyperparameter optimisation.
+
+Ensembling as a separate module - rather than boosting or something similar.
+
+\subsection{What have we not talked about?}
+
+This is not bounded rational - it's kinda like meta reasoning so certainly not optimal in the long run.
+
+Machine learning is a pipe-line - pre and post processing clearly missing.
+
+Off-line learning.
 
 %\newpage
 
