@@ -136,13 +136,13 @@ FTBO assumes that algorithms can be paused and restarted, and constructs a decis
 The central idea of this work is to use information from partially trained algorithms to prioritise which algorithms to run.
 This idea has been explored previously under the title of racing algorithms\fTBD{cite} and there are contemporary related methods in the badits literature\fTBD{cite}.
 
-\subsection{Enemble construction; in particular, stacking}
+\subsection{Stacking: a method of ensemble construction}
 
 Combining multiple predictions into a single ensembled prediction almost always results in better performance; it is very rare for the winning solution of a data mining (or more accurately, prediciton) competition to not be an ensemble of different techniques\fTBD{cite}.
 There are many methods for forming ensembles\fTBD{cite}, but we restrict attention to stacking\fTBD{cite} for simplicity.
 
 Suppose we are learning a function $\InputSpace \to \ObservationSpace$ from data $\InputVector, \ObservationVector = (\Input_i)_{i=1,\dots,N}, (\Observation_i)_{i=1,\dots,N}$.
-Denote the prediction\footnotemark from learning algorithm $j$ by $\hat\ObservationVector^j$.
+Denote the prediction\footnotemark{} from learning algorithm $j$ by $\hat\ObservationVector^j$.
 Stacking forms an ensemble of several predictions be learning a function $(\hat\Observation_i^1,\dots,\hat\Observation_i^J) \to \Observation_i$ for all $i$.
 That is, stacking first concatenates the outputs from the base learning algorithms and then learns a function from these concatenated outputs to the output value of the original data.
 
