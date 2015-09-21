@@ -75,14 +75,26 @@ University of Cambridge\\
 
 %\nipsfinalcopy
 
-\begin{document} 
+\begin{document}
+
+\def\ParamSpace{\Theta}
+\def\Param{\theta}
+\def\Observation{y}
+\def\ObservationVector{Y}
+\def\ObservationSpace{\mathcal{Y}}
+\def\Func{f}
+\def\FuncTime{g}
+\def\Noise{\varepsilon}
+\def\Input{x}
+\def\InputVector{X}
+\def\InputSpace{\mathcal{X}}
 
 \maketitle
 
 %\vspace{-\baselineskip}
 
 \begin{abstract} 
-This paper describes the methods implemented in the [redacted] entry to the \nth{2} round of the AutoML challenge, auto-track.
+This paper describes the methods implemented in the [redacted] place entry to the \nth{2} round of the AutoML challenge, auto-track.
 The methods are most succinctly described as an extension of freeze-thaw Bayesian optimization to ensemble construction.
 In particular, we assume that we have access to a finite number of iterative learning algorithms and some method of forming an ensemble prediction from several predictions.
 We then consider the decision process of which iterative algorithms to run and for how long in order to maximise the performance of the ensembled predictions at the end of some time limit.
@@ -103,11 +115,44 @@ Intro
 
 \subsection{Model-based and Bayesian optimisation}
 
+Consider the task of maximising some function $\Func : \ParamSpace \to \Reals$.
+Suppose we observe evaluations of the function, potentially corrupted by noise, $\Observation_i = \Func(\Param_i) + \Noise_i$.
+Model-based optimisation uses the observations $\{(\Param_i, \Observation_i)\}_{i=1,\dots,N}$ to draw inferences about $f$ and then uses this information to decide where to evaluate the (noisy) function next.
+Model-based optimisation has gained popularity in the domain of hyperparameter optimisation for learning / statistical algorithms \ie optimisation of parameters not explicitly set by the learning / inference procedure.
+Here, the noisy evaluations of the function $\Func$ are some estimate of performance of a learning algorithm \eg cross-validated performance under some metric.
+Both frequentist\fTBD{cite} and Bayesian\fTBD{cite} approaches to inference have been explored in this domain and many variations of all sorts (modelling assumptions, evaluation location selection strategy, exploitation of parallelism, et cetera) abound\fTBD{cite}.
+
+The main benefit of model-based optimisation in the context of hyper-parameter optimisation is the possibility of data efficiency.
+That is, by introducing assumptions about the nature of function $\Func$ one can draw inferences about it after observing relatively few evaluations of the function compared to classical optimisation algorithms.
+When the function being optimised is the performance of a slow to evaluate learning algorithm, data efficiency is paramount, hence the focus on Bayesian inference methods and evaluation location selection strategies\fTBD{cite}.
+
 \subsection{Freeze-thaw Bayesian optimisation}
 
-\subsection{Enemble construction and in particular, stacking}
+The importance of data efficiency, and thus time efficiency, is the motivation of freeze-thaw Bayesian optimisation\fTBD{cite} (FTBO).
+This algorithm augments Bayesian optimisation for hyperparameter learning by using information from partially trained algorithms.
+Concretely, assume that if we run a learning algorithm for time $t$ then we can obtain a noisy evaluation of its performance $\Observation_{it} = \FuncTime(\Param_i, t) + \Noise_{it}$.
+FTBO assumes that algorithms can be paused and restarted, and constructs a decision procedure based on inferences of $\FuncTime$ to optimise algorithm performance at convergence \ie $\Func(\Param_i) \defas \FuncTime(\Param_i, \infty)$.
+
+The central idea of this work is to use information from partially trained algorithms to prioritise which algorithms to run.
+This idea has been explored previously under the title of racing algorithms\fTBD{cite} and there are contemporary related methods in the badits literature\fTBD{cite}.
+
+\subsection{Enemble construction; in particular, stacking}
+
+Combining multiple predictions into a single ensembled prediction almost always results in better performance; it is very rare for the winning solution of a data mining (or more accurately, prediciton) competition to not be an ensemble of different techniques\fTBD{cite}.
+There are many methods for forming ensembles\fTBD{cite}, but we restrict attention to stacking\fTBD{cite} for simplicity.
+
+Suppose we are learning a function $\InputSpace \to \ObservationSpace$ from data $\InputVector, \ObservationVector = (\Input_i)_{i=1,\dots,N}, (\Observation_i)_{i=1,\dots,N}$.
+Denote the prediction\footnotemark from learning algorithm $j$ by $\hat\ObservationVector^j$.
+Stacking forms an ensemble of several predictions be learning a function $(\hat\Observation_i^1,\dots,\hat\Observation_i^J) \to \Observation_i$ for all $i$.
+That is, stacking first concatenates the outputs from the base learning algorithms and then learns a function from these concatenated outputs to the output value of the original data.
+
+\footnotetext{In \eg a classification problem the prediction might be either a class label or a probability value / vector.}
+
+As described above it may appear that the training data is being used twice, which might results in some form of overconfidence.
+This can be remedied easily by using two sets of validation data or by cross validation (which we describe in section~\ref{sec:method}).
 
 \section{Description of method}
+\label{sec:method}
 
 \section{Empirical performance}
 
