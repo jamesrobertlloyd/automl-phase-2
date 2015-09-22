@@ -109,7 +109,7 @@ Finally we position this work within the broader goal of automating as much of t
 
 \section{Introduction}
 
-This paper describes a method for automatic machine learning (AutoML), in particular it targets the construction of a predictive model.
+This paper describes a method for automatic machine learning (AutoML); in particular it targets the construction of a predictive model.
 At the time of writing a canonical way for an AutoML system to work would be to treat learning algorithms as black boxes that return predictions and an estimate of their performance.
 The task is then to choose an algorithm and hyperparameters that maximise this estimate of performance (perhaps accounting for the noisy character of the estimates).
 
@@ -125,16 +125,16 @@ For this competition, program robustness and other implementation details were i
 
 \subsection{Model-based and Bayesian optimisation}
 
-Consider the task of maximising some function $\Func : \ParamSpace \to \Reals$.
-Suppose we observe evaluations of the function, potentially corrupted by noise, $\Observation_i = \Func(\Param_i) + \Noise_i$.
-Model-based optimisation uses the observations $\{(\Param_i, \Observation_i)\}_{i=1,\dots,N}$ to draw inferences about $f$ and then uses this information to decide where to evaluate the (noisy) function next.
-Model-based optimisation has gained popularity in the domain of hyperparameter optimisation for learning / statistical algorithms \ie optimisation of parameters not explicitly set by the learning / inference procedure.
+Consider the task of maximising some function ${\Func : \ParamSpace \to \Reals}$.
+Suppose we observe evaluations of the function, potentially corrupted by noise, ${\Observation_i = \Func(\Param_i) + \Noise_i}$.
+Model-based optimisation uses the observations ${\{(\Param_i, \Observation_i)\}_{i=1,\dots,N}}$ to draw inferences about $f$ and then uses this information to decide where to evaluate the (noisy) function next.
+Model-based optimisation has recently gained popularity in the domain of hyperparameter optimisation for learning / statistical algorithms \ie optimisation of parameters not explicitly set by the learning / inference procedure.
 Here, the noisy evaluations of the function $\Func$ are some estimate of performance of a learning algorithm \eg cross-validated performance under some metric.
-Both frequentist\fTBD{cite} and Bayesian\fTBD{cite} approaches to inference have been explored in this domain and many variations of all sorts (modelling assumptions, evaluation location selection strategy, exploitation of parallelism, etc.) abound\fTBD{cite}.
+Both frequentist\fTBD{cite} and Bayesian\fTBD{cite} approaches to inference have been explored in this domain and variations of all sorts (modelling assumptions, evaluation location selection strategy, exploitation of parallelism, etc.) abound\fTBD{cite}.
 
 The main benefit of model-based optimisation in the context of hyper-parameter optimisation is the possibility of data efficiency.
 That is, by introducing assumptions about the nature of function $\Func$ one can draw inferences about it after observing relatively few evaluations of the function compared to classical optimisation algorithms\footnotemark{}\fTBD{cite}.
-When the function being optimised is the performance of a slow to evaluate learning algorithm, data efficiency is paramount, hence the focus on Bayesian inference methods and evaluation location selection strategies\fTBD{cite}.
+When the function being optimised is the performance of a slow to evaluate learning algorithm, data efficiency is paramount, hence the focus on Bayesian inference methods and advanced evaluation location selection strategies\fTBD{cite}.
 
 \footnotetext{Some classical optimisation algorithms have recently been interpreted as model-based optimisation using (approximate) inference.}
 
@@ -142,8 +142,8 @@ When the function being optimised is the performance of a slow to evaluate learn
 
 The importance of data efficiency, and thus time efficiency, is the motivation of freeze-thaw Bayesian optimisation\fTBD{cite} (FTBO).
 This algorithm augments Bayesian optimisation for hyperparameter learning by using information from partially trained algorithms.
-Concretely, assume that if we run a learning algorithm for time $t$ then we can obtain a noisy evaluation of its performance $\Observation_{it} = \FuncTime(\Param_i, t) + \Noise_{it}$.
-FTBO assumes that algorithms can be paused and restarted, and constructs a decision procedure based on inferences of $\FuncTime$ to optimise algorithm performance at convergence \ie $\Func(\Param_i) \defas \FuncTime(\Param_i, \infty)$.
+Concretely, assume that if we run a learning algorithm for time $t$ then we can obtain a noisy evaluation of its performance ${\Observation_{it} = \FuncTime(\Param_i, t) + \Noise_{it}}$.
+FTBO assumes that algorithms can be paused and restarted, and constructs a decision procedure based on inferences of $\FuncTime$ to optimise algorithm performance at convergence \ie ${\Func(\Param_i) \defas \FuncTime(\Param_i, \infty)}$.
 
 The central idea of this work is to use information from partially trained algorithms to prioritise which algorithms to run.
 This idea has been explored previously under the title of racing algorithms\fTBD{cite} and there are contemporary related methods in the badits literature\fTBD{cite}.
@@ -153,29 +153,29 @@ This idea has been explored previously under the title of racing algorithms\fTBD
 Combining multiple predictions into a single ensembled prediction almost always results in better performance; it is very rare for the winning solution of a data mining (or more accurately, prediciton) competition to not be an ensemble of different techniques\fTBD{cite}.
 There are many methods for forming ensembles\fTBD{cite}, but we restrict attention to stacking\fTBD{cite} for simplicity.
 
-Suppose we are learning a function $\InputSpace \to \ObservationSpace$ from data $\InputVector, \ObservationVector = (\Input_i)_{i=1,\dots,N}, (\Observation_i)_{i=1,\dots,N}$.
-Denote the prediction\footnotemark{} from learning algorithm $j$ by $\hat\ObservationVector^j$.
-Stacking forms an ensemble of several predictions be learning a function $(\hat\Observation_i^1,\dots,\hat\Observation_i^J) \to \Observation_i$ for all $i$.
+Suppose we are learning a function ${\InputSpace \to \ObservationSpace}$ from data ${\InputVector, \ObservationVector = (\Input_i)_{i=1,\dots,N}, (\Observation_i)_{i=1,\dots,N}}$.
+Denote the predictions\footnotemark{} from learning algorithm $j$ by $\hat\ObservationVector^j$.
+Stacking forms an ensemble of several predictions be learning a function ${(\hat\Observation_i^1,\dots,\hat\Observation_i^J) \to \Observation_i}$ for all $i$.
 That is, stacking first concatenates the outputs from the base learning algorithms and then learns a function from these concatenated outputs to the output value of the original data.
 
 \footnotetext{In \eg a classification problem the prediction might be either a class label or a probability value / vector.}
 
-As described above it may appear that the training data is being used twice, which might results in some form of overconfidence.
-This can be remedied easily by using two sets of validation data or by cross validation (which we describe in section~\ref{sec:method}).
+As described above it may appear that the training data is being used twice, which might result in some form of overconfidence.
+This can be remedied easily by using two sets of validation data or by cross validation which is the approach taken here.
 
 \section{Description of method}
 \label{sec:method}
 
 In this section we give descriptions with increasing levels of detail of the algorithm we used in the \nth{2} round of the AutoML challenge, auto-track.
 The code we submitted to the competition is available on github\footnotemark{}.
-Many details of the algorithm were chosen somewhat arbitrarily or by rules of thumb; we discuss these choices at the end of this manuscript.
+Since this code was written under time pressure, many details of the algorithm were chosen somewhat arbitrarily or by rules of thumb; we discuss these choices at the end of this manuscript.
 
 \footnotetext{[Redacted]}
 
 \subsection{The main ideas}
 
 The main idea behind this method is to try to predict how much the performance of an ensembled prediction will improve if a base algorithm is run for a certain amount of extra time.
-Contrast this with FTBO that predicts how much an individual algorithm will improve.
+Contrast this with FTBO that predicts how much an individual algorithm will improve; this is the small but important innovation.
 The main design principles of implementation are those of modularity, parallelism and fault tolerance so that any part of the algorithm can fail or become slow and the whole algorithm will still do something sensible.
 
 \subsection{Description}
@@ -185,20 +185,31 @@ The training data is split into five equally sized folds and each algorithm is r
 The predictions on the held out data are used to estimate the performance of the base learning algorithms under some metric.
 
 The non-iterative algorithms are run in sequence, and are terminated after producing predictions or after a time limit.
-The iterative algorithms are run for a set period of time in sequence and are then paused, but are terminated is they do not produce predictions after a time limit.
+The iterative algorithms are run for a set period of time in sequence and are then paused, but are terminated if they do not produce predictions after a time limit.
 
 Whenever new predictions are made by a base learner or an iterative algorithm updates its predictions, the stacking algorithm is run.
 The inputs for the stacking learning problem are the concatenated predicted class probabilities from each base learner on the held out data.
-To learn the stacking function, logistic regression is used, where the coefficients are constrained to be equal across input class labels for each base learner i.e. a weighted sum of base probability predictions followed by a softmax.
-The performance of stacking is estimated via five fold cross validation.
+To learn the stacking function, logistic regression is used, with constraints on the coefficients as follows.
+Let $c_{ijk}$ be the coefficient for base algorithm $i$, input class label $j$ and output class label $k$.
+Then,
+\begin{align}
+  c_{ijk} &= 0\phantom{c_{ij'k'}} \quad \textrm{if}\,\, j \neq k \\
+  c_{ijk} &= c_{ij'k'}\phantom{0} \quad \forall\,\, j, j', k, k'
+\end{align}
+i.e. the ensemble prediction is a weighted vector sum of base probability predictions followed by a softmax.
+The performance of stacking is estimated via five fold cross validation\footnotemark{}.
+
+\footnotetext{These folds need not be related to the orignal folds.}
 
 The changes in performance of each iterative base learner are recorded along with the corresponding change to the performance of the ensemble.
-Together with features recording other aspects of the state of base learners and the stacked ensemble a decision tree learning algorithm is used to learn a function to map between improvements in individual learners and the ensemble.
+Together with features recording other aspects of the state of base learners and the stacked ensemble a decision tree learning algorithm is used to learn a function to map between improvements in individual learners and improvements in the ensemble.
 Similar methods to those proposed in FTBO are used to extrapolate individual learning curves which allows for one to estimate how much the ensemble performance will improve if a single learning algorithm is run for a certain amount of extra time.
 
-For each iterative learning algorithm, the expected improvement to the performance of the ensemble prediction is caluclated is the algorithm is run for a time equal to an integer multiple of some base quantum of time.
+For each iterative learning algorithm, we calculate the expected improvement to the performance of the ensemble prediction if the algorithm is run for a time equal to an integer multiple of some base quantum of time.
 These expected improvements are discounted through time with a constant discount factor.
 The algorithm with the highest discounted expected improvement at some time is then chosen as the next algorithm to run.
+
+This procedure iterates (asynchronously) until the time limit is reached.
 
 \subsection{Details of the method}
 
