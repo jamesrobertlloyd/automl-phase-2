@@ -213,32 +213,98 @@ This procedure iterates (asynchronously) until the time limit is reached.
 
 \subsection{Details of the method}
 
-FTBO kernel.
+\paragraph{Base learning algorithms}
 
-Decision tree features and prior.
+We used the scikit-learn implementations of the following non-iterative\footnotemark{} algorithms
+\begin{itemize}
+  \item Logistic regression with $\ell_1$ regularisation
+  \item Logistic regression with $\ell_2$ regularisation
+  \item k-nearest neighbours
+  \item Gaussian naive Bayes
+  \item Decision trees
+\end{itemize}
+\footnotetext{Many can be implemented iteratively.}
+and the following iterative algorithms
+\begin{itemize}
+  \item Random forest\footnote{A small modification is required to make this an iterative algorithm using the scikit-learn implementation.}
+  \item Gradient boosted decision trees
+\end{itemize}
+Each algorithm was run with around 3 or 5 different parameter settings (see code for exact values).
+In addition to different parameter values, base learners were constructed that only ran on a subset of data points and/or features.
+This was a simple guard against a very large dataset preventing anythng from running due to memory constraints.
 
-Base learners (data and feature subsetting).
+\paragraph{Cross validation}
 
-Held out data and averaging of stuff.
+The training data was split into 5 equal folds.
+In parallel for each folds, each algorithm was trained on the 4 other folds, producing predictions for the held-out fold and the validation and testing data.
+The held-out predictions were concatenated resulting in held-out predictions from each algorithm for the entire training data.
+The 5 predictions for the validation and testing data were averaged to produce a single set of predictions from the learning algorithm.
 
-Details of parameters are unimportant (since they are mostly arbitrary choices) but can be found in the code.
+\paragraph{Extrapolating learning curves}
 
-Missing data and feature selection as per the sample code.
+The iterative algorithms estimated their performance under an approrpriate metric using the held out predictions 10 times per quantum of time (about 15 seconds).
+These estimates of performance were then extrapolated using Gaussian process regression using the kernel intoduced in FTBO\fTBD{cite} and the same inference methods \ie slice sampling\fTBD{cite} of hyperparameters and analytic integration of the Gaussian process.
+For simplicity, each algorithm's learning curve was modelled independently of the rest.
+Extrapolations were represented as samples from the posterior distribution.
+
+\paragraph{Predicting improvements to the ensembled prediction}
+
+Each time the stacking algorithm was run after an iterative algorithm was updated, the following data was recorded
+\begin{itemize}
+  \item $\Delta_\textrm{best}$ - the performance of the individual algorithm minus the previous individual base learner best performance
+  \item $\Delta_\textrm{ind}$ - the performance increase of the individual algorithm
+  \item $\Delta_\textrm{ens}$ - the performance increase of the ensemble
+\end{itemize}
+$\Delta_\textrm{ens}$ was then modelled as
+\[
+  \Delta_\textrm{ens} = \alpha(\Delta_\textrm{best})\Delta_\textrm{ind}
+\]
+where the function $\alpha$ was learnt using a decision tree learning algorithm.
+
+\paragraph{Missing data and feature selection}
+
+We used the same data loading and preprocessing routines provided by the AutoML challenge organisers\fTBD{cite}.
 
 \subsection{Details of implementation}
 
-Memory management including memory sharing and startegies for sparse data.
+\paragraph{Parallelism and message passing}
 
-Message passing.
+The most important details of the implementation are parallelism and memory management.
+The following processes ran asynchronously in parallel using message passing to communicate information
+\begin{itemize}
+  \item The main thread, which would terminate everything if memory usage was dangerously high or the time limit was approaching
+  \item The manager, which was responsible for creating, pausing and terminating all processes as well as instructing processes to serialise to disk
+  \item The learning curve extrapolator
+  \item The stacker, which also produced estimates of how much each algorithm was expected to improve the performance of the ensemble if run for more time
+  \item For each base learning algorithm
+  \begin{itemize}
+    \item A cross validator which would combine and evaluate the predictions of\dots
+    \item \dots five workers which would produce predictions
+  \end{itemize}
+\end{itemize}
 
-Parallelism.
+Training data was always loaded into memory but shared between processes wherever possible.
+The manager would use the expected performance improvements calculated by the stacker to rank all of the base learning algorithms.
+When memory usage became low the manager would instruct the lowest ranked processes to serialise to disk.
+If memory usage became very low the manager would pause all programs until memory usage reduced.
+If a process took too long to serialise to disk then it would be terminated.
 
 \section{Empirical performance}
 
-We were placed [redacted].
-The results are below.
+Our evaluation of the method described in this paper is currently limited to the competition performance where we were placed [redacted] in the \nth{2} round of the AutoML challenge, auto-track.
+The performance of the top five participants is shown below
 
-[TABLE]
+\begin{table}
+  \center
+  \begin{tabular}{lrrrrrr}
+    Team name & Average rank & P1 & P2 & P3 & P4 & P5 \\
+    backstreet.bayes & 1.8 & 0.3193 (3) & x & x & x & x\\
+    aad\_freiburg    & 3.4 & DNF (last) & x & x & x & x \\
+    lukasz.romano    & 3.8 & 0.3304 (2) & x & x & x & x \\
+    matthias.vonrohr & 4.4 & 0.3029 (5) & x & x & x & x \\
+    marc.boulle      & 4.4 & 0.3533(1) & x & x & x & x
+  \end{tabular}
+\end{table}
 
 \section{Discussion}
 
