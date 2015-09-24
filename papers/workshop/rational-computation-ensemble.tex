@@ -99,8 +99,7 @@ The methods are most succinctly described as an extension of freeze-thaw Bayesia
 In particular, we assume that we have access to a finite number of iterative learning algorithms and some method of forming an ensemble prediction from several predictions.
 We then consider the decision process of which iterative algorithms to run and for how long in order to maximise the performance of the ensembled predictions at the end of some time limit.
 Our approach to this Markov decision process is to model the reward function in a Bayesian fashion and then follow a mostly myopic strategy.
-We also discuss some technical details such as managing memory usage and asynchrony.
-Finally we position this work within the broader goal of automating as much of the machine learning pipeline as possible.
+We also discuss some technical details such as memory management and asynchrony.
 \end{abstract} 
 
 \allowdisplaybreaks
@@ -155,7 +154,7 @@ There are many methods for forming ensembles\fTBD{cite}, but we restrict attenti
 
 Suppose we are learning a function ${\InputSpace \to \ObservationSpace}$ from data ${\InputVector, \ObservationVector = (\Input_i)_{i=1,\dots,N}, (\Observation_i)_{i=1,\dots,N}}$.
 Denote the predictions\footnotemark{} from learning algorithm $j$ by $\hat\ObservationVector^j$.
-Stacking forms an ensemble of several predictions be learning a function ${(\hat\Observation_i^1,\dots,\hat\Observation_i^J) \to \Observation_i}$ for all $i$.
+Stacking forms an ensemble of several predictions by learning a function ${(\hat\Observation_i^1,\dots,\hat\Observation_i^J) \to \Observation_i}$ for all $i$.
 That is, stacking first concatenates the outputs from the base learning algorithms and then learns a function from these concatenated outputs to the output value of the original data.
 
 \footnotetext{In \eg a classification problem the prediction might be either a class label or a probability value / vector.}
@@ -168,7 +167,7 @@ This can be remedied easily by using two sets of validation data or by cross val
 
 In this section we give descriptions with increasing levels of detail of the algorithm we used in the \nth{2} round of the AutoML challenge, auto-track.
 The code we submitted to the competition is available on github\footnotemark{}.
-Since this code was written under time pressure, many details of the algorithm were chosen somewhat arbitrarily or by rules of thumb; we discuss these choices at the end of this manuscript.
+Since this code was written under time pressure, many details of the algorithm were chosen somewhat arbitrarily or by rules of thumb; we discuss some of these choices at the end of this manuscript.
 
 \footnotetext{[Redacted]}
 
@@ -236,13 +235,13 @@ This was a simple guard against a very large dataset preventing anythng from run
 \paragraph{Cross validation}
 
 The training data was split into 5 equal folds.
-In parallel for each folds, each algorithm was trained on the 4 other folds, producing predictions for the held-out fold and the validation and testing data.
+In parallel for each fold, each algorithm was trained on the 4 other folds, producing predictions for the held-out fold and the validation and testing data.
 The held-out predictions were concatenated resulting in held-out predictions from each algorithm for the entire training data.
 The 5 predictions for the validation and testing data were averaged to produce a single set of predictions from the learning algorithm.
 
 \paragraph{Extrapolating learning curves}
 
-The iterative algorithms estimated their performance under an approrpriate metric using the held out predictions 10 times per quantum of time (about 15 seconds).
+The iterative algorithms estimated their performance using the held out predictions 10 times per quantum of time (often about 15 seconds).
 These estimates of performance were then extrapolated using Gaussian process regression using the kernel intoduced in FTBO\fTBD{cite} and the same inference methods \ie slice sampling\fTBD{cite} of hyperparameters and analytic integration of the Gaussian process.
 For simplicity, each algorithm's learning curve was modelled independently of the rest.
 Extrapolations were represented as samples from the posterior distribution.
@@ -336,14 +335,14 @@ From early on the ensemble dominates all individual algorithms by a wide margin.
 \paragraph{Quickly halting unpromising algorithms}
 
 The search space of all machine learning algorithms is very large indeed.
-In order to be able to seach this space quickly it is paramount to be able to halt unpromising lines of enquiry early, that is, it is important to fail fast.
+In order to be able to seach this space quickly it is paramount to be able to halt unpromising lines of enquiry early; that is, it is important to fail fast.
 
 \subsection{What is wrong with this method?}
 
 \paragraph{Cross validation}
 
 For large data, 5 fold cross validation is overkill; it would produce unnecessarily confident estimates of predictive performance.
-For small data it will produce high variance estimates, increasing chances of overfitting when selecting which predictions to use (ensemble or individual algorithm and at what time).
+For small data it would produce high variance estimates, increasing chances of overfitting when selecting which predictions to use (ensemble or individual algorithm and at what time).
 
 \paragraph{Hyperparameter optimisation}
 
@@ -355,6 +354,11 @@ Clearly it might be advisable to search (continuous) parameter spaces more thror
 For conceptual simplicity, this system was designed in a modular fashion.
 However, this is not a reflection of any theoretical modularity of the problem being solved.
 In particular, ensembling need not be independent of base learning algorithms; methods where the ensembling algorithm and base learners interact (\eg boosting\fTBD{cite}) may yield better results.
+
+\paragraph{Myopia}
+
+The algorithm presented here is greedy, save for some unprincipled discounting of expected improvements.
+Due to the complexity of the system, reinforcement learning of some sort is probably the simplest way to learn an appropriate trade-off between exploration and exploitation.
 
 \subsection{What have we not talked about?}
 
