@@ -283,6 +283,8 @@ The following processes ran asynchronously in parallel using message passing to 
   \end{itemize}
 \end{itemize}
 
+\paragraph{Memory management}
+
 Training data was always loaded into memory but shared between processes wherever possible.
 The manager would use the expected performance improvements calculated by the stacker to rank all of the base learning algorithms.
 When memory usage became low the manager would instruct the lowest ranked processes to serialise to disk.
@@ -292,47 +294,89 @@ If a process took too long to serialise to disk then it would be terminated.
 \section{Empirical performance}
 
 Our evaluation of the method described in this paper is currently limited to the competition performance where we were placed [redacted] in the \nth{2} round of the AutoML challenge, auto-track.
-The performance of the top five participants is shown below
+For a detailed description of the competition see \fTBD{cite} and follow up papers published by the organisers.
 
-\begin{table}
+The performance of the top five participants is shown in table~\ref{table:automlresults}.
+The table lists the team name, mean rank over the five datasets, and the performance (under some metric) on each dataset together with the rank of this value.
+
+\begin{table}[ht]
   \center
-  \begin{tabular}{lrrrrrr}
-    Team name & Average rank & P1 & P2 & P3 & P4 & P5 \\
-    backstreet.bayes & 1.8 & 0.3193 (3) & x & x & x & x\\
-    aad\_freiburg    & 3.4 & DNF (last) & x & x & x & x \\
-    lukasz.romano    & 3.8 & 0.3304 (2) & x & x & x & x \\
-    matthias.vonrohr & 4.4 & 0.3029 (5) & x & x & x & x \\
-    marc.boulle      & 4.4 & 0.3533(1) & x & x & x & x
+  \begin{tabular}{|l|r|r|r|r|r|r|}
+    \hline
+    Team name & Mean rank & Set 1 & Set 2 & Set 3 & Set 4 & Set 5 \\
+    \hline
+    backstreet.bayes & 1.8 & 0.3193 (3) & 0.9198 (1) & 0.3361 (1) & 0.3495 (2) & 0.2351 (2)\\
+    \hline
+    aad\_freiburg    & 3.4 & --- (last) & 0.8688 (2) & 0.3214 (2) & 0.3357 (4) & 0.2386 (1) \\
+    \hline
+    lukasz.romano    & 3.8 & 0.3304 (2) & 0.6662 (4) & 0.2647 (5) & 0.3440 (3) & 0.2194 (5) \\
+    \hline
+    matthias.vonrohr & 4.4 & 0.3029 (5) & 0.5939 (5) & 0.3064 (3) & 0.2994 (6) & 0.2220 (3) \\
+    \hline
+    marc.boulle      & 4.4 & 0.3533 (1) & 0.4561 (7) & 0.2130 (7) & 0.3692 (1) & 0.1434 (6) \\
+    \hline
   \end{tabular}
+  \caption[AutoML results]{AutoML challenge, round 2, auto-track, top 5 results}
+  \label{table:automlresults}
 \end{table}
 
 \section{Discussion}
 
-Discussion
+We now discuss what is good about this method, what can be improved, and situate this work within the broader goal of automating the machine learning pipeline.
 
 \subsection{What is right with this method?}
 
-Ensembling and paying keen attention to time.
+\paragraph{Ensembling}
+
+Much of the AutoML literature to date has focused on model selection.
+However, ensembling can provide a sometimes substantial boost in performance for relatively little conceptual effort.
+Figure\fTBD{insert figure} shows the estimated performance of many individual learning algorithms (left) and the estimated performance of an ensemble formed from them (right), both through time.
+From early on the ensemble dominates all individual algorithms by a wide margin.
+
+\paragraph{Quickly halting unpromising algorithms}
+
+The search space of all machine learning algorithms is very large indeed.
+In order to be able to seach this space quickly it is paramount to be able to halt unpromising lines of enquiry early, that is, it is important to fail fast.
 
 \subsection{What is wrong with this method?}
 
-Cross validation.
+\paragraph{Cross validation}
 
-Hyperparameter optimisation.
+For large data, 5 fold cross validation is overkill; it would produce unnecessarily confident estimates of predictive performance.
+For small data it will produce high variance estimates, increasing chances of overfitting when selecting which predictions to use (ensemble or individual algorithm and at what time).
 
-Ensembling as a separate module - rather than boosting or something similar.
+\paragraph{Hyperparameter optimisation}
+
+We made the simplifying assumption that there are only finitely many learning algorithms and parameter settings.
+Clearly it might be advisable to search (continuous) parameter spaces more throroughly.
+
+\paragraph{Modularity}
+
+For conceptual simplicity, this system was designed in a modular fashion.
+However, this is not a reflection of any theoretical modularity of the problem being solved.
+In particular, ensembling need not be independent of base learning algorithms; methods where the ensembling algorithm and base learners interact (\eg boosting\fTBD{cite}) may yield better results.
 
 \subsection{What have we not talked about?}
 
-This is not bounded rational - it's kinda like meta reasoning so certainly not optimal in the long run.
+\paragraph{Optimising pipelines, not just learning algorithms}
 
-Machine learning is a pipe-line - pre and post processing clearly missing.
+Machine learning in the wild often involves data collection, data cleaning, preprocessing, postprocessing and many other processes other than modelling\fTBD{Cite Caruana?}.
+In particular, preprocessing and postprocessing methods are absent from our method.
+The challenge for incorporating such methods in an automated system is at least two fold.
+First, the value of a preprocessing method may only be apparent after a learning algorithm has been run on its output; knowing how long to run an iterative preprocessing method may be difficult.
+Second, including pre and postprocessing routines vastly increases the search space of potential learning pipelines, especially since such methods can be composed.
 
-Off-line learning.
+\paragraph{Off-line learning}
 
-Proper data subsetting strategies for algorithms not easily made stochastic.
+The current system starts each problem with very little knowledge about typical datasets or how well different algorithms are likely to perform.
+Meta-learning\fTBD{cite} and reinforcement learning seem like worthwhile avenues to explore.
 
-An ensemble is just a prediction method - why the distinction?
+\paragraph{Bounded rationality}
+
+The task of AutoML is to find the best algorithm with finite computational resources.
+Limited resources force us to reconsider our definitions of `best' and of rationality.
+Ideally, an AutoML system would be bounded rational\fTBD{cite}.
+This is likely very difficult to do, but reinforcement learning techniques could be used to get closer to an asymptotically bounded rational system (maybe).
 
 %\newpage
 
